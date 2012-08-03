@@ -1,0 +1,195 @@
+#!/usr/bin/env python
+
+import optparse
+import re
+import signal
+import simplejson as json
+import string
+import sys
+import traceback
+
+from ast import literal_eval
+from urlparse import urlparse, parse_qs
+from urllib import unquote
+from util.crypto import decrypt_api_fields
+from util.mobile_session import loads as mobile_session_loads
+from yelp_lib.containers.dicts import get_deep
+from yelp_lib.containers.dicts import set_deep
+from yelp_lib.dates import from_timestamp
+
+# String these from begin/end of values
+strip_chars = '\"\',%s' % string.whitespace
+
+def unbuffered_stdin():
+	"""Unbuffered read allows lines to be processed before EOF is reached"""
+	line = sys.stdin.readline()
+	while bool(line):
+		yield line
+		line = sys.stdin.readline()
+
+def get_url_param_deep(blob, json_key, query_param):
+	"""From a JSON blob, interpret a key as a URL and try to find the value of a specific query param"""
+	try:
+		params = urlparse(get_deep(blob, json_key))[4]
+		param_val = parse_qs(params)[query_param][0]
+		return unquote(param_val).lstrip(strip_chars).rstrip(strip_chars)
+	except:
+		return None
+
+def get_efs_url_param_deep(blob, json_key, query_param, efs_key):
+	"""From a JSON blob, interpret a key as a URL, interpret a query_param as an EFS field, and try to find the value of a specific query param"""
+	try:
+		efs = get_url_param_deep(blob, json_key, query_param)
+		efs_dict = decrypt_api_fields(efs)
+		return efs_dict.get(efs_key, None)
+	except:
+		return None
+
+def create_key_blob(key):
+	comparison_op = 'EQ'
+	if key.startswith('~'):
+		comparison_op = 'NEQ'
+		key = key[1:]
+
+	json_key, _, query_param = key.partition('&')
+	if query_param:
+		query_param, _, efs_key = query_param.partition('.')
+	else:
+		efs_key = None
+	key_blob = {'key': key, 'json_key':json_key, 'query_param':query_param, 'efs_key':efs_key, 'comparison_op': comparison_op}
+	return key_blob
+
+def get_value_by_key_blob(blob, key_blob):
+	if key_blob['efs_key']:
+		value = get_efs_url_param_deep(blob, key_blob['json_key'], key_blob['query_param'], key_blob['efs_key'])
+	elif key_blob['query_param']:
+		value =  get_url_param_deep(blob, key_blob['json_key'], key_blob['query_param'])
+	else:
+		value = get_deep(blob, key_blob['json_key'], default=None)
+	if not value:
+		value = str(None)
+
+	return value
+
+def compare_key_blob(blob, key_blob, compare_to):
+	value = get_value_by_key_blob(blob, key_blob)
+	if key_blob['comparison_op'] == 'EQ':
+		return bool(value.lower() != compare_to.lower())
+	else:
+		return bool(value.lower() == compare_to.lower())
+
+def format_value(value):
+#	if not value:
+#		value = unicode(' ')
+	return value
+
+
+def get_cmdline_options():
+	examples = []
+	examples.append('jgrep [options]')
+	examples.append('\tex: jgrep -g servlet user -g servlet_action alerts_v2')
+	examples.append('\t\tPrint lines with servlet key that has value \'user\' and servlet_action key with value \'alerts_v2\'')
+	examples.append('\tex: jgrep -g error.id INVALID_SESSION -i 2 -b')
+	examples.append('\t\tPretty print lines with error.id key that has value \'INVALID_SESSION\'')
+	examples.append('\tex: jgrep -g site api -p error.id -p field')
+	examples.append('\t\tPrint error.id and field for lines with site key that has value \'api\'')
+	examples.append('\tex: jgrep -p \"uri&app_version\"')
+	examples.append('\t\tTreat the uri key\'s value as a URL and print the value of the app_version query param')
+	examples.append('\tex: jgrep -p \"uri&efs.device\"')
+	examples.append('\t\tTreat the uri key\'s value as a URL, treat the efs query param as an EFS encrypted field, and print the value of the device param inside the EFS')
+	examples.append('\tex: jgrep --to-date=server_timestamp -p server_timestamp.hour')
+	examples.append('\t\tTreat the server_timestamp key\'s value as a timestamp, print the hour from the decoded server_timestamp')
+	parser = optparse.OptionParser(usage='\n'.join(examples))
+
+	parser.add_option('-g', '--grep', dest='opt_grep', action='append', type='string',
+		help='first arg is key, second is regexp to match. JSON path should be dot(.) separated, ampersand(&) signifies a URL query param, dot(.) after ampersand(&) signifies an EFS param', nargs=2, default=[]),
+	parser.add_option('-p', '--print', dest='opt_print', action='append', type='string',
+		help='key to be printed', default=[])
+
+	parser.add_option('--to-date', dest='opt_to_date', action='append', type='string',
+		help='key to be converted to a date and written back as {key.value:, key.year:, key.month:, key.day:, key.hour:, key.minute:, key.second:}', default=[])
+	parser.add_option('--to-bool', dest='opt_to_bool', action='append', type='string',
+		help='key to be converted to a bool and written back as {key.value:, key.bool:}', default=[])
+	parser.add_option('--to-json', dest='opt_jsonify', action='store_true', default=False,
+		help='convert from repr output to JSON')
+	parser.add_option('--as-json', dest='opt_as_json', action='store_true', default=False,
+		help='convert output to be JSON rather than tab separated fields')
+
+	parser.add_option('-i', '--indent', dest='opt_indent', default=None,
+		help='amount to indent pretty print')
+	parser.add_option('-c', '--column', dest='opt_column', default=0,
+		help='column to read json from')
+	parser.add_option('-b', '--line-break', dest='opt_linebreak', action='store_true', default=False,
+		help='replace \\n in output with line breaks')
+
+	options, _ = parser.parse_args()
+	return options
+
+def main():
+	signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
+	options = get_cmdline_options()
+
+	if options.opt_indent:
+		options.opt_indent = int(options.opt_indent)
+
+	options.opt_grep = [(create_key_blob(key), value) for key, value in options.opt_grep]
+	options.opt_print = [create_key_blob(key) for key in options.opt_print]
+	options.opt_to_date = [create_key_blob(key) for key in options.opt_to_date]
+	options.opt_to_bool = [create_key_blob(key) for key in options.opt_to_bool]
+
+	if options.opt_print:
+		sys.stderr.write('\t'.join([key_blob['key'] for key_blob in options.opt_print]))
+		sys.stderr.write('\n')
+		sys.stderr.flush()
+
+	for line in unbuffered_stdin():
+		try:
+			split_on = int(options.opt_column)
+			line = line.split(None, split_on)[split_on].lstrip(strip_chars).rstrip(strip_chars)
+			if options.opt_jsonify:
+				blob = literal_eval(line)
+			else:
+				blob = json.loads(line)
+
+			for date_key in options.opt_to_date:
+				timestamp = float(get_value_by_key_blob(blob, date_key))
+				date_time = from_timestamp(timestamp)
+				set_deep(blob, date_key['json_key'],
+						 {'value': timestamp, 'year': date_time.year, 'month': date_time.month,
+						  'day': date_time.day, 'hour': date_time.hour, 'minute': date_time.minute,
+						  'second': date_time.second})
+
+			for bool_key in options.opt_to_bool:
+				raw_val = get_value_by_key_blob(blob, bool_key)
+				set_deep(blob, bool_key['json_key'],
+						 {'value': raw_val, 'bool': ('None' != raw_val)})
+
+			if any([compare_key_blob(blob, key_blob, value) for key_blob, value in options.opt_grep]):
+				continue
+
+			if options.opt_print and options.opt_as_json:
+				out_blob = dict()
+				for key_blob in options.opt_print:
+					set_deep(out_blob, key_blob['json_key'], format_value(get_value_by_key_blob(blob, key_blob)))
+				line = json.dumps(out_blob, indent=options.opt_indent)
+			elif options.opt_print:
+				temp = [format_value(get_value_by_key_blob(blob, key_blob)) for key_blob in options.opt_print]
+				line = '\t'.join(temp)
+			else:
+				line = json.dumps(blob, indent=options.opt_indent)
+
+			if options.opt_linebreak:
+				for replace_me, with_this in (('\\n', '\n'), ('\\t', '\t'), ('\\"', '\"'), ('\\', '\'')):
+					line = string.replace(line, replace_me, with_this)
+
+			output = ('%s\n' % line)#.encode('utf-8')
+			sys.stdout.write(output)
+			sys.stdout.flush()
+		except Exception as e:
+			output = ('%s %s\n%s\n' % (repr(e), traceback.format_exc(), line)).encode('utf-8')
+			sys.stderr.write(output)
+			pass
+
+if __name__ == "__main__":
+	main()
