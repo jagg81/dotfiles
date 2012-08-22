@@ -1,0 +1,20 @@
+export PATH='/nail/home/jgonzale/bin:/nail/home/jgonzale/bin:/nail/usr/bin:/nail/sys/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/nail/scripts:/nail/iclassify/bin:/nail/workflow:/nail/scripts'
+
+<<COMM1
+if [ -e /usr/share/terminfo/x/xterm-256color ]; then
+	export TERM='xterm-256color'
+else
+	export TERM='xterm-color'
+fi
+COMM1
+
+# include .aliases if it exists
+if [ -f ~/.aliases ]; then
+  source ~/.aliases
+fi
+
+# use .localrc for SUPER SECRET CRAP that you don't
+# want in your public, versioned repo.
+if [ -e ~/.localrc ]; then
+  source ~/.localrc
+fi
