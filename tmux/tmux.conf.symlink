@@ -10,3 +10,6 @@ bind -r C-k resize-pane -U
 bind -r C-l resize-pane -R
 
 set -g default-terminal "screen-256color"
+set -g update-environment "DISPLAY SSH_ASKPASS SSH_AGENT_PID SSH_CONNECTION WINDOWID XAUTHORITY"
+# Forward ssh key to tmux env
+set-environment -g 'SSH_AUTH_SOCK' ~/.ssh/ssh_auth_sock
