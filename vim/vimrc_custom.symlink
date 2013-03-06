@@ -40,6 +40,7 @@ set noexpandtab				" in python, we use real tabs
 set softtabstop=4
 set tabstop=4
 set shiftwidth=4
+set listchars=eol:$,tab:>-,trail:.,extends:>,precedes:<,nbsp:_       " Show spaces/tabs character when `:set list` is ON
 
 set nohidden				" do not keep buffer after tab closed
 
