@@ -1,9 +1,42 @@
-#!/bin/sh
+#!/bin/bash
 #
 # bootstrap installs things.
 
-# Assume everyone's on OS X and run Homebrew (*nix-ers beware)
-. script/homebrew
+# This is really ugly and not the best way to it. I shall get back to this later.
+CONFIG_DIR="$HOME/.dotfiles"
 
-# Run the install (I'd like to pull this out of rake, eventually)
-rake install
+function link_config(){
+	local src="$CONFIG_DIR/$1"
+	local dest="$HOME/$2"
+	local is_dir=$3
+
+	if [ $is_dir -eq 1 ]
+	then
+		if [ ! -d $dest ]; then
+			ln -s $src $dest
+			echo "added $dest..."
+		fi
+	else
+		if [ ! -f $dest ]; then
+			ln -s $src $dest
+			echo "added $dest..."
+		fi
+	fi
+}
+
+
+# BASH
+link_config 'bash/bash_profile.symlink' '.bash_profile' 0
+link_config 'bash/bashrc.symlink' '.bashrc' 0
+link_config 'bash/aliases.symlink' '.aliases' 0
+
+# VIM
+link_config 'vim/vim.symlink' '.vim' 1
+link_config 'vim/vimrc.symlink' '.vimrc' 0
+
+# SSH
+link_config 'ssh/config.symlink' '.ssh/config' 0
+link_config 'ssh/rc.symlink' '.ssh/rc' 0
+
+## TMUX
+link_config 'tmux/tmux.conf.symlink' '.tmux.conf' 0
