@@ -5,17 +5,17 @@
 [hub]
         protocol = https
 [user]
-        name = Jorge Gonzalez 
-        email = jagg81@gmail.com 
+        name = Jorge Gonzalez
+        email = jagg81@gmail.com
 [credential]
         helper = osxkeychain
 [alias]
         st = status
         br = branch
         co = checkout
-        promote = !$ZSH/bin/git-promote
-        wtf     = !$ZSH/bin/git-wtf
-        rank-contributers = !$ZSH/bin/git-rank-contributers
+        promote = !$HOME/.dotfiles/bin/git-promote
+        wtf     = !$HOME/.dotfiles/bin/git-wtf
+        rank-contributers = !$HOME/.dotfiles/bin/git-rank-contributers
         count   = !git shortlog -sn
 [color]
         diff = auto
