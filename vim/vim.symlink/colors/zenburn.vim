@@ -172,7 +172,7 @@ if &t_Co > 255
     hi PreProc         ctermfg=223   cterm=bold
     hi Question        ctermfg=15    cterm=bold
     hi Repeat          ctermfg=223   cterm=bold
-    hi Search          ctermfg=230   ctermbg=236    
+    hi Search          ctermfg=230   ctermbg=red cterm=bold,underline
     hi SpecialChar     ctermfg=181   cterm=bold
     hi SpecialComment  ctermfg=108   cterm=bold
     hi Special         ctermfg=181  
