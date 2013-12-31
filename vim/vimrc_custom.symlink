@@ -36,7 +36,7 @@ set laststatus=2
 set title                   " Show title in title bar
 "set cursorline              " Highlight the current line
 
-set noexpandtab				" in python, we use real tabs
+set expandtab				" in python, we now use spaces
 set softtabstop=4
 set tabstop=4
 set shiftwidth=4
