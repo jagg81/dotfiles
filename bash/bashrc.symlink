@@ -1,4 +1,9 @@
-export PATH='/nail/home/jgonzale/bin:/nail/home/jgonzale/bin:/nail/usr/bin:/nail/sys/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/nail/scripts:/nail/iclassify/bin:/nail/workflow:/nail/scripts'
+#export PATH='/nail/home/jgonzale/bin:/nail/home/jgonzale/bin:/nail/usr/bin:/nail/sys/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/nail/scripts:/nail/iclassify/bin:/nail/workflow:/nail/scripts'
+
+# set PATH so it includes user's private bin if it exists
+#if [ -d ~/bin ] ; then
+    #export PATH=~/bin:"${PATH}"
+#fi
 
 <<COMM1
 if [ -e /usr/share/terminfo/x/xterm-256color ]; then
