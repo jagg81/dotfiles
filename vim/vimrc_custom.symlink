@@ -62,7 +62,7 @@ set statusline+=%c,			" cursor column
 set statusline+=%l/%L		" cursor line/total lines
 
 " Syntastic puglin settings
-let g:syntastic_python_checkers = ['python']
+let g:syntastic_python_checkers = ['pyflakes', 'python']
 
 set nofoldenable			" everything unfolded by default
 
