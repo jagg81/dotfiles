@@ -5,8 +5,8 @@
 [hub]
         protocol = https
 [user]
-        name = Jorge Gonzalez
-        email = jagg81@gmail.com
+        name = <name>
+        email = <email>
 [credential]
         helper = osxkeychain
 [alias]
