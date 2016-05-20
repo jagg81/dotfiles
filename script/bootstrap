@@ -25,10 +25,35 @@ function link_config(){
 }
 
 
+function copy_config(){
+	local src="$CONFIG_DIR/$1"
+	local dest="$HOME/$2"
+	local is_dir=$3
+
+	if [ $is_dir -eq 1 ]
+	then
+		if [ ! -d $dest ]; then
+			cp -r $src $dest
+			echo "copied $dest..."
+		fi
+	else
+        if [ -f $dest ]; then
+            mv $dest "$dest.bk"
+            echo "backup created $dest.bk"
+        fi
+		if [ ! -f $dest ]; then
+			cp $src $dest
+			echo "copied $dest..."
+		fi
+	fi
+}
+
+
 # BASH
 link_config 'bash/bash_profile.symlink' '.bash_profile' 0
 link_config 'bash/bashrc.symlink' '.bashrc' 0
 link_config 'bash/aliases.symlink' '.aliases' 0
+copy_config 'bash/localrc.copylink' '.localrc' 0
 
 # VIM
 link_config 'vim/vim.symlink' '.vim' 1
@@ -40,3 +65,10 @@ link_config 'ssh/rc.symlink' '.ssh/rc' 0
 
 ## TMUX
 link_config 'tmux/tmux.conf.symlink' '.tmux.conf' 0
+
+## GIT
+copy_config 'git/gitconfig.copylink' '.gitconfig' 0
+
+## IRSSI
+link_config 'irssi/irssi.symlink' '.irssi' 1
+copy_config 'irssi/config.copylink' '.irssi/config' 0
