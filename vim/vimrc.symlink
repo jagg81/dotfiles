@@ -49,7 +49,8 @@ set backup
 set backupdir=~/.vim/backup
 set directory=~/.vim/tmp
 
-set mouse=a					" Mouse support (needs MouseEvents and SIMBL hax to work in Terminal.app)
+"set mouse=a					" Mouse support (needs MouseEvents and SIMBL hax to work in Terminal.app)
+set mouse=r                     " The above setting is super annoying, so trying this `r` mode"
 
 " set default split opening position to be below and to the right of currently active split
 set splitbelow
