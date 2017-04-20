@@ -52,7 +52,7 @@ function copy_config(){
 # BASH
 link_config 'bash/bash_profile.symlink' '.bash_profile' 0
 link_config 'bash/bashrc.symlink' '.bashrc' 0
-link_config 'bash/aliases.symlink' '.bash_aliases' 0
+link_config 'bash/aliases.symlink' '.aliases' 0
 copy_config 'bash/localrc.copylink' '.localrc' 0
 
 # VIM
@@ -70,4 +70,5 @@ link_config 'tmux/tmux.conf.symlink' '.tmux.conf' 0
 copy_config 'git/gitconfig.copylink' '.gitconfig' 0
 
 ## IRSSI
-copy_config 'irssi/irssi.symlink' '.irssi' 1
+link_config 'irssi/irssi.symlink' '.irssi' 1
+copy_config 'irssi/config.copylink' '.irssi/config' 0
