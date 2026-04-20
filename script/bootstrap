@@ -53,6 +53,14 @@ link_config() {
             REPLACED+=("$dest")
         fi
     elif [ -e "$dest" ]; then
+        printf "  ${YELLOW}file exists:${RESET} $dest\n"
+        printf "  Symlink (backup existing) or skip? [s/skip] "
+        read -r choice
+        if [[ "$choice" =~ ^[Ss]$ ]] || [ -z "$choice" ]; then
+            printf "  ${DIM}skipped: $dest${RESET}\n"
+            SKIPPED+=("$dest")
+            return
+        fi
         mv "$dest" "$dest.bk"
         printf "  ${YELLOW}backed up:${RESET} $dest.bk\n"
         BACKED_UP+=("$dest.bk")
