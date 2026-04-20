@@ -84,7 +84,7 @@ filetype plugin indent on
 highlight Pmenu term=bold ctermfg=Cyan
 " Extra filetypes
 "au BufNewFile,BufRead *.tmpl set filetype=html
-au BufNewFile,BufRead *.js.tmpl set filetype=javascript
+"au BufNewFile,BufRead *.js.tmpl set filetype=javascript
 " Keep comments indented
 inoremap # #
 " make requires real tabs
@@ -206,4 +206,5 @@ map zj <C-W>j<C-W>_<CR>
 " Switch tabs easily
 nmap <Tab> gt
 
-
+" Switch between the last two files
+nnoremap <leader><leader> <c-^>

@@ -126,3 +126,56 @@ fi
 if [ ! -e "$HOME/.ssh/ssh_auth_sock" ]; then
     source $HOME/.ssh/rc
 fi
+
+# DELETE
+#export NVM_DIR="$HOME/.nvm"
+#[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+#[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi
+
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+
+## Node Version Management (NMV)
+# XDG support
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+# Simplier version (non-XDG support)
+#export NVM_DIR="$HOME/.nvm"
+#[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Homebrew
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# Docker
+export PATH="$PATH:$HOME/.docker/bin"
+
+### Added by the Heroku Toolbelt - DELETE?
+## path order was inverted (heroku last) b/c rvm gets upset
+#export PATH="/usr/local/heroku/bin:$PATH"
+#export PATH="$PATH:/usr/local/heroku/bin"
+#export PATH="/usr/local/opt/postgresql@10.5/bin:$PATH"
+
+# pnpm
+export PNPM_HOME="$HOME/.local/share/pnpm"
+export PATH="$PNPM_HOME:$PATH"
+
+# Android SDK (for React Native)
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+
+# Claude Code
+export PATH="$HOME/.local/bin:$PATH"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+. "/Users/jorge/.deno/env"

@@ -9,3 +9,42 @@ alias gg='git grep'
 alias ff='find . -iname'
 alias finds='find . -maxdepth 1 | xargs du -smh'
 alias sourcevenv='source ./virtualenv_run/bin/activate'
+alias ghist='git log --follow -p'
+alias flush-dns='sudo killall -HUP mDNSResponder'
+alias run-ctags-rails='ctags --exclude=.git --exclude=tmp --exclude=public --exclude=log --exclude=app/assets --languages=ruby -R .'
+alias run-ctags-node='ctags --exclude=.git --exclude=.next --exclude=tmp --exclude=coverage --exclude=log --exclude=node_modules --languages=javascript -R .'
+
+# SELA shortcuts
+alias sela_run_all_checks='pnpm run lint && pnpm db:test && pnpm test:all && pnpm run typecheck'
+
+
+
+
+## Trommelo deploy shortcuts
+#alias trommelo_deploy_all='trommelo_deploy_prod_skip_devstage && trommelo_deploy_non_prod'
+#alias trommelo_deploy_non_prod='trommelo_deploy_alpha'
+#alias trommelo_deploy_stage='$PWD/bin/deploy && $PWD/bin/promote'
+#alias trommelo_deploy_stage_force='$PWD/bin/deploy --force && $PWD/bin/promote'
+#alias trommelo_deploy_prod_skip_devstage='$PWD/bin/deploy && $PWD/bin/promote && $PWD/bin/promote trommelostagea'
+#alias trommelo_deploy_prod_skip_devstage_force='$PWD/bin/deploy --force && $PWD/bin/promote && $PWD/bin/promote trommelostagea'
+#alias trommelo_deploy_alpha='$PWD/bin/deploy herokualpha'
+#alias trommelo_deploy_alpha_force='$PWD/bin/deploy --force herokualpha'
+#alias trommelo_deploy_demo='$PWD/bin/deploy herokudemo'
+## Heroku shortcuts
+#alias trommelo_heroku_worker_logs='heroku logs -t --force-colors -p "worker" -a trommelo'
+## Trommelo Heroku CI
+## Trommelo local Docker development
+#alias trommelo_local_app_restart='docker-compose down && docker-compose up'
+#alias trommelo_local_app_build_restart='docker-compose down && docker-compose build && docker-compose up'
+#alias trommelo_local_app_web_connect='docker-compose exec trommelo_app sh'
+#alias trommelo_local_app_worker_connect='docker-compose exec trommelo_worker sh'
+#alias trommelo_local_app_test_connect='docker-compose run --rm trommelo_test sh'
+#alias trommelo_local_app_routes='docker-compose run --rm trommelo_app rails routes'
+#alias trommelo_local_app_debug='docker attach trommelo_app'
+#alias trommelo_local_ngrok='ngrok http 5000'
+#alias trommelo_local_app_run_tests='docker-compose run --rm trommelo_test rspec spec'
+#alias trommelo_local_app_run_single_test='docker-compose run --rm trommelo_test rspec '
+#alias trommelo_local_app_run_cmd='docker-compose run --rm trommelo_app '
+
+## LinkedIn MCP Server shortcuts
+#alias run_docker_linkedin_mcp_server='source ~/.dotfiles/.env.local && docker run -it --rm -e LINKEDIN_COOKIE="$LINKEDIN_COOKIE" -p 8080:8080 stickerdaniel/linkedin-mcp-server:latest --transport streamable-http --host 0.0.0.0 --port 8080 --path /mcp'
