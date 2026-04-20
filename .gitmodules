@@ -22,3 +22,6 @@
 [submodule "vim/vim.symlink/bundle/ctrlp"]
 	path = vim/vim.symlink/bundle/ctrlp
 	url = https://github.com/kien/ctrlp.vim.git
+[submodule "vim/vim.symlink/pack/github/start/copilot.vim"]
+	path = vim/vim.symlink/pack/github/start/copilot.vim
+	url = https://github.com/github/copilot.vim.git
