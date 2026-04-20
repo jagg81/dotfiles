@@ -71,3 +71,9 @@ copy_config 'git/gitconfig.copylink' '.gitconfig' 0
 
 ## IRSSI
 copy_config 'irssi/irssi.symlink' '.irssi' 1
+
+## VSCODE
+copy_config 'vscode/settings.json.copylink' 'Library/Application Support/Code/User/settings.json' 0
+
+## CURSOR
+copy_config 'cursor/settings.json.copylink' 'Library/Application Support/Cursor/User/settings.json' 0

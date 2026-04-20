@@ -1,0 +1,15 @@
+anthropic.claude-code
+anysphere.cursorpyright
+bradlc.vscode-tailwindcss
+dbaeumer.vscode-eslint
+dsznajder.es7-react-js-snippets
+eamodio.gitlens
+ecmel.vscode-html-css
+esbenp.prettier-vscode
+mechatroner.rainbow-csv
+misogi.ruby-rubocop
+ms-python.debugpy
+ms-python.python
+msjsdiag.vscode-react-native
+streetsidesoftware.code-spell-checker
+usernamehw.errorlens

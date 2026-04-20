@@ -1,0 +1,10 @@
+{
+    "workbench.colorTheme": "Default Dark Modern",
+    "github.copilot.editor.enableAutoCompletions": true,
+    "editor.defaultFormatter": "misogi.ruby-rubocop",
+    "ruby.rubocop.onSave": false,
+    "ruby.rubocop.executePath": "/Users/jorge/.rvm/gems/ruby-2.7.7@trommelo/bin/",
+    "extensions.autoUpdate": false,
+    "geminicodeassist.project": "",
+    "cloudcode.duetAI.project": ""
+}

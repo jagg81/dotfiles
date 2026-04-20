@@ -1,0 +1,16 @@
+anthropic.claude-code
+bradlc.vscode-tailwindcss
+dbaeumer.vscode-eslint
+dsznajder.es7-react-js-snippets
+eamodio.gitlens
+ecmel.vscode-html-css
+esbenp.prettier-vscode
+github.copilot-chat
+github.vscode-github-actions
+google.geminicodeassist
+misogi.ruby-rubocop
+ms-vscode.live-server
+msjsdiag.vscode-react-native
+streetsidesoftware.code-spell-checker
+urin.vscode-web-visual-editor
+usernamehw.errorlens
