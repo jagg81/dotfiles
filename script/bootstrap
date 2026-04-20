@@ -100,6 +100,16 @@ fi
 if confirm "Vim"; then
     link_config 'vim/vim.symlink' '.vim'
     link_config 'vim/vimrc.symlink' '.vimrc'
+    for dir in "$HOME/.vim/backup" "$HOME/.vim/tmp"; do
+        if [ ! -d "$dir" ]; then
+            mkdir -p "$dir"
+            printf "  ${GREEN}created:${RESET} $dir\n"
+            LINKED+=("$dir/")
+        else
+            printf "  ${DIM}already exists: $dir${RESET}\n"
+            SKIPPED+=("$dir/")
+        fi
+    done
 else
     SECTIONS_SKIPPED+=("Vim")
 fi
