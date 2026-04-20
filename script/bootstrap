@@ -2,85 +2,191 @@
 #
 # bootstrap installs things.
 
-# This is really ugly and not the best way to it. I shall get back to this later.
+set -e
+
 CONFIG_DIR="$HOME/.dotfiles"
 
-function link_config(){
-	local src="$CONFIG_DIR/$1"
-	local dest="$HOME/$2"
-	local is_dir=$3
+BOLD='\033[1m'
+GREEN='\033[32m'
+YELLOW='\033[33m'
+CYAN='\033[36m'
+DIM='\033[2m'
+RESET='\033[0m'
 
-	if [ $is_dir -eq 1 ]
-	then
-		if [ ! -d $dest ]; then
-			ln -s $src $dest
-			echo "added $dest..."
-		fi
-	else
-		if [ ! -f $dest ]; then
-			ln -s $src $dest
-			echo "added $dest..."
-		fi
-	fi
+LINKED=()
+COPIED=()
+BACKED_UP=()
+REPLACED=()
+SKIPPED=()
+SECTIONS_SKIPPED=()
+
+confirm() {
+    echo ""
+    printf "${BOLD}${CYAN}▶ Install $1?${RESET} [y/N] "
+    read -r answer
+    [[ "$answer" =~ ^[Yy]$ ]]
 }
 
+ensure_dir() {
+    local dir
+    dir="$(dirname "$1")"
+    if [ ! -d "$dir" ]; then
+        mkdir -p "$dir"
+        printf "  ${DIM}created dir: $dir${RESET}\n"
+    fi
+}
 
-function copy_config(){
-	local src="$CONFIG_DIR/$1"
-	local dest="$HOME/$2"
-	local is_dir=$3
+link_config() {
+    local src="$CONFIG_DIR/$1"
+    local dest="$HOME/$2"
 
-	if [ $is_dir -eq 1 ]
-	then
-		if [ ! -d $dest ]; then
-			cp -r $src $dest
-			echo "copied $dest..."
-		fi
-	else
-        if [ -f $dest ]; then
-            mv $dest "$dest.bk"
-            echo "backup created $dest.bk"
+    ensure_dir "$dest"
+
+    if [ -L "$dest" ]; then
+        if [ "$(readlink "$dest")" = "$src" ]; then
+            printf "  ${DIM}already linked: $dest${RESET}\n"
+            SKIPPED+=("$dest")
+        else
+            printf "  ${YELLOW}stale symlink, replacing:${RESET} $dest\n"
+            rm "$dest"
+            ln -s "$src" "$dest"
+            REPLACED+=("$dest")
         fi
-		if [ ! -f $dest ]; then
-			cp $src $dest
-			echo "copied $dest..."
-		fi
-	fi
+    elif [ -e "$dest" ]; then
+        mv "$dest" "$dest.bk"
+        printf "  ${YELLOW}backed up:${RESET} $dest.bk\n"
+        BACKED_UP+=("$dest.bk")
+        ln -s "$src" "$dest"
+        printf "  ${GREEN}linked:${RESET} $dest\n"
+        LINKED+=("$dest")
+    else
+        ln -s "$src" "$dest"
+        printf "  ${GREEN}linked:${RESET} $dest\n"
+        LINKED+=("$dest")
+    fi
 }
 
+copy_config() {
+    local src="$CONFIG_DIR/$1"
+    local dest="$HOME/$2"
 
-# BASH
-link_config 'bash/bash_profile.symlink' '.bash_profile' 0
-link_config 'bash/bashrc.symlink' '.bashrc' 0
-link_config 'bash/aliases.symlink' '.bash_aliases' 0
-copy_config 'bash/localrc.copylink' '.localrc' 0
+    ensure_dir "$dest"
 
-# VIM
-link_config 'vim/vim.symlink' '.vim' 1
-link_config 'vim/vimrc.symlink' '.vimrc' 0
+    if [ -e "$dest" ]; then
+        mv "$dest" "$dest.bk"
+        printf "  ${YELLOW}backed up:${RESET} $dest.bk\n"
+        BACKED_UP+=("$dest.bk")
+    fi
+    cp -r "$src" "$dest"
+    printf "  ${GREEN}copied:${RESET} $dest\n"
+    COPIED+=("$dest")
+}
 
-# SSH
-link_config 'ssh/config.symlink' '.ssh/config' 0
-link_config 'ssh/rc.symlink' '.ssh/rc' 0
+# -----------------------------------------------
 
-## TMUX
-link_config 'tmux/tmux.conf.symlink' '.tmux.conf' 0
+echo ""
+printf "${BOLD}dotfiles bootstrap${RESET}\n"
+printf "${DIM}Config dir: $CONFIG_DIR${RESET}\n"
 
-## GIT
-copy_config 'git/gitconfig.copylink' '.gitconfig' 0
+if confirm "Bash"; then
+    link_config 'bash/bash_profile.symlink' '.bash_profile'
+    link_config 'bash/bashrc.symlink' '.bashrc'
+    link_config 'bash/aliases.symlink' '.bash_aliases'
+    copy_config 'bash/localrc.copylink' '.localrc'
+else
+    SECTIONS_SKIPPED+=("Bash")
+fi
 
-## IRSSI
-copy_config 'irssi/irssi.symlink' '.irssi' 1
+if confirm "Vim"; then
+    link_config 'vim/vim.symlink' '.vim'
+    link_config 'vim/vimrc.symlink' '.vimrc'
+else
+    SECTIONS_SKIPPED+=("Vim")
+fi
 
-## VSCODE
-copy_config 'vscode/settings.json.copylink' 'Library/Application Support/Code/User/settings.json' 0
+if confirm "SSH"; then
+    link_config 'ssh/config.symlink' '.ssh/config'
+    link_config 'ssh/rc.symlink' '.ssh/rc'
+else
+    SECTIONS_SKIPPED+=("SSH")
+fi
 
-## CURSOR
-copy_config 'cursor/settings.json.copylink' 'Library/Application Support/Cursor/User/settings.json' 0
+if confirm "tmux"; then
+    link_config 'tmux/tmux.conf.symlink' '.tmux.conf'
+else
+    SECTIONS_SKIPPED+=("tmux")
+fi
 
-## CLAUDE
-link_config 'claude/CLAUDE.md.symlink' '.claude/CLAUDE.md' 0
-link_config 'claude/settings.json.symlink' '.claude/settings.json' 0
-link_config 'claude/statusline.sh.symlink' '.claude/statusline.sh' 0
-link_config 'claude/agents/code-reviewer.md.symlink' '.claude/agents/code-reviewer.md' 0
-link_config 'claude/skills/gh-commit-content/SKILL.md.symlink' '.claude/skills/gh-commit-content/SKILL.md' 0
+if confirm "Git"; then
+    copy_config 'git/gitconfig.copylink' '.gitconfig'
+else
+    SECTIONS_SKIPPED+=("Git")
+fi
+
+if confirm "Irssi"; then
+    copy_config 'irssi/irssi.symlink' '.irssi'
+else
+    SECTIONS_SKIPPED+=("Irssi")
+fi
+
+if confirm "VS Code"; then
+    copy_config 'vscode/settings.json.copylink' 'Library/Application Support/Code/User/settings.json'
+else
+    SECTIONS_SKIPPED+=("VS Code")
+fi
+
+if confirm "Cursor"; then
+    copy_config 'cursor/settings.json.copylink' 'Library/Application Support/Cursor/User/settings.json'
+else
+    SECTIONS_SKIPPED+=("Cursor")
+fi
+
+if confirm "Claude Code"; then
+    link_config 'claude/CLAUDE.md.symlink' '.claude/CLAUDE.md'
+    link_config 'claude/settings.json.symlink' '.claude/settings.json'
+    link_config 'claude/statusline.sh.symlink' '.claude/statusline.sh'
+    link_config 'claude/agents/code-reviewer.md.symlink' '.claude/agents/code-reviewer.md'
+    link_config 'claude/skills/gh-commit-content/SKILL.md.symlink' '.claude/skills/gh-commit-content/SKILL.md'
+else
+    SECTIONS_SKIPPED+=("Claude Code")
+fi
+
+# -----------------------------------------------
+# Summary
+
+echo ""
+printf "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}\n"
+printf "${BOLD}Summary${RESET}\n"
+printf "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}\n"
+
+if [ ${#LINKED[@]} -gt 0 ]; then
+    printf "\n${GREEN}Linked (${#LINKED[@]}):${RESET}\n"
+    for f in "${LINKED[@]}"; do printf "  $f\n"; done
+fi
+
+if [ ${#COPIED[@]} -gt 0 ]; then
+    printf "\n${GREEN}Copied (${#COPIED[@]}):${RESET}\n"
+    for f in "${COPIED[@]}"; do printf "  $f\n"; done
+fi
+
+if [ ${#REPLACED[@]} -gt 0 ]; then
+    printf "\n${YELLOW}Replaced stale symlinks (${#REPLACED[@]}):${RESET}\n"
+    for f in "${REPLACED[@]}"; do printf "  $f\n"; done
+fi
+
+if [ ${#BACKED_UP[@]} -gt 0 ]; then
+    printf "\n${YELLOW}Backed up (${#BACKED_UP[@]}):${RESET}\n"
+    for f in "${BACKED_UP[@]}"; do printf "  $f\n"; done
+fi
+
+if [ ${#SKIPPED[@]} -gt 0 ]; then
+    printf "\n${DIM}Already linked (${#SKIPPED[@]}):${RESET}\n"
+    for f in "${SKIPPED[@]}"; do printf "  $f\n"; done
+fi
+
+if [ ${#SECTIONS_SKIPPED[@]} -gt 0 ]; then
+    printf "\n${DIM}Sections skipped: ${SECTIONS_SKIPPED[*]}${RESET}\n"
+fi
+
+echo ""
+printf "${GREEN}${BOLD}Done.${RESET}\n"
