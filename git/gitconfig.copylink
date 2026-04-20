@@ -17,6 +17,12 @@
         wtf     = !$HOME/.dotfiles/bin/git-wtf
         rank-contributers = !$HOME/.dotfiles/bin/git-rank-contributers
         count   = !git shortlog -sn
+        log-commits = !git log -n 5 --pretty=format:"%s"
+        # Helpers
+        ac = "!f() { git add -p && git commit -m \"$1\"; }; f"
+        acp = "!f() { git add -p && git commit -m \"$1\" && git push origin HEAD; }; f"
+# CD/CI helpers
+        tr-cd = "!f() { git fetch origin --prune && git branch -r --merged origin/develop --no-merged origin/master|grep -i 'rec'; }; f"
 [color]
         diff = auto
         status = auto
@@ -33,3 +39,8 @@
         prompt = false
 [help]
         autocorrect = 1
+[filter "lfs"]
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
