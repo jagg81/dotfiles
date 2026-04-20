@@ -1,0 +1,102 @@
+---
+name: gh-commit-content
+description: Safe patterns for creating GitHub issues and git commits with multi-line or quote-containing content. Use this skill whenever creating GH issues (gh issue create), editing issues (gh issue edit), creating PRs (gh pr create), or committing with multi-line messages. Shell quoting with heredocs or inline strings frequently breaks when content contains single quotes, double quotes, backticks, or dollar signs — this skill avoids those pitfalls entirely by using temp files.
+---
+
+# GitHub Content Authoring: Issues, PRs, and Commits
+
+Shell quoting breaks silently when issue bodies or commit messages contain quotes, backticks, template literals, or dollar signs — all common in technical content. The fix is simple: always write content to a temp file first, then pass the file to the CLI tool.
+
+## Why temp files instead of heredocs
+
+Heredocs (`<<'EOF'`) handle most quoting, but still fail when content contains unmatched quotes or certain bash metacharacters. Temp files are universally safe regardless of content.
+
+## Creating GitHub Issues
+
+```bash
+# 1. Write the body to a temp file (use Write tool, not echo/cat heredoc)
+#    File: /tmp/gh-issue-<descriptive-name>.md
+
+# 2. Create the issue using --body-file
+gh issue create \
+  --repo owner/repo \
+  --title "Issue title here" \
+  --label "bug,enhancement" \
+  --body-file /tmp/gh-issue-<descriptive-name>.md
+
+# 3. Clean up
+rm -f /tmp/gh-issue-<descriptive-name>.md
+```
+
+Use the Write tool to create the temp file — this avoids any shell interpretation of the content.
+
+## Editing GitHub Issues
+
+```bash
+# 1. Write the updated body to a temp file
+#    File: /tmp/gh-issue-edit-<descriptive-name>.md
+
+# 2. Edit the issue using --body-file
+gh issue edit <number> \
+  --repo owner/repo \
+  --body-file /tmp/gh-issue-edit-<descriptive-name>.md
+
+# 3. Clean up
+rm -f /tmp/gh-issue-edit-<descriptive-name>.md
+```
+
+## Creating Pull Requests
+
+```bash
+# 1. Write the PR body to a temp file
+#    File: /tmp/gh-pr-<descriptive-name>.md
+
+# 2. Create the PR using --body-file
+gh pr create \
+  --title "PR title here" \
+  --body-file /tmp/gh-pr-<descriptive-name>.md
+
+# 3. Clean up
+rm -f /tmp/gh-pr-<descriptive-name>.md
+```
+
+## Creating Git Commits
+
+```bash
+# 1. Write the commit message to a temp file
+cat > "$TMPDIR/msg.txt" << 'EOF'
+type(scope): short description
+
+Longer explanation of the change, which can contain `backticks`,
+"double quotes", 'single quotes', $variables, and any other content
+without shell escaping issues.
+EOF
+
+# 2. Commit using -F (file)
+git commit -F "$TMPDIR/msg.txt"
+
+# 3. Clean up
+rm -f "$TMPDIR/msg.txt"
+```
+
+For commit messages, `$TMPDIR` is preferred over `/tmp/` since it uses the OS temp directory.
+
+Note: Single-line commit messages without special characters can safely use `git commit -m "message"` — the temp file pattern is for multi-line messages or messages with quotes/backticks.
+
+## Cleanup
+
+Always remove temp files after the command succeeds. If the command fails, keep the temp file so the content can be inspected or retried.
+
+```bash
+# Pattern: create, use, clean up
+TMPFILE="/tmp/gh-issue-$(date +%s).md"
+# ... write content to $TMPFILE ...
+gh issue create --body-file "$TMPFILE" && rm -f "$TMPFILE"
+```
+
+## Common Pitfalls
+
+- **Inline `--body` with heredoc**: Fails when body contains unmatched single quotes or `$(...)` expressions
+- **`-m` with complex messages**: Shell interprets `$`, backticks, and quotes before git sees them
+- **Process substitution (`<(...)`)**: Fails when the inner command has quoting issues — same problem, just nested
+- **Forgetting cleanup**: Temp files accumulate in `/tmp/` — always clean up after successful use

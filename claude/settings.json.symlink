@@ -1,0 +1,74 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls *)",
+      "Bash(tree *)",
+      "Bash(cat *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(head *)",
+      "Bash(wc *)",
+      "Bash(echo *)",
+      "Bash(node *)",
+      "Bash(xargs *)",
+      "Bash(pnpm *)",
+      "Bash(npm ls *)",
+      "Bash(docker *)",
+      "Bash(git log *)",
+      "Bash(git status *)",
+      "Bash(git checkout:*)",
+      "Bash(git add *)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "WebSearch",
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:docs.expo.dev)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:tamagui.dev)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:solito.dev)"
+    ],
+    "defaultMode": "default"
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "osascript -e 'display alert \"Claude Code\" message \"Claude Code needs your attention\"'"
+          },
+          {
+            "type": "command",
+            "command": "say 'Claude Code needs your attention'"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "claude-code-setup@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": false,
+    "frontend-design@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "taches-cc-resources@taches-cc-resources": true
+  },
+  "extraKnownMarketplaces": {
+    "taches-cc-resources": {
+      "source": {
+        "source": "github",
+        "repo": "glittercowboy/taches-cc-resources"
+      }
+    }
+  },
+  "effortLevel": "medium",
+  "model": "sonnet"
+}
