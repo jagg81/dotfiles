@@ -1,17 +1,77 @@
-set-option -g prefix C-a	# make the command key C-a
-unbind-key C-b				# unbind the old command key
-bind-key a send-prefix		# 'C-a a' sends literal 'C-a'
-# Reload key
-bind r source-file $HOME/.tmux.conf
-# keybindings to make resizing easier
-bind -r C-h resize-pane -L
-bind -r C-j resize-pane -D
-bind -r C-k resize-pane -U
-bind -r C-l resize-pane -R
+# =============================================================================
+# TMUX Configuration - CLIPBOARD CRASH FIX
+# =============================================================================
 
+# Prefix configuration
+set-option -g prefix C-a
+unbind-key C-b
+bind-key a send-prefix
+
+# Terminal settings
 set -g default-terminal "screen-256color"
-# Forward ssh key to tmux env
-# http://blog.codersbase.com/2012/03/tmux-ssh-agent.html
-# http://docstore.mik.ua/orelly/networking_2ndEd/ssh/ch08_04.htm
+set-option -g default-shell "/bin/bash"
+
+# CRITICAL: Disable clipboard integration to prevent crashes
+set -g set-clipboard off
+
+# Use vi-style copy mode
+setw -g mode-keys vi
+
+# Copy mode bindings - NO clipboard integration
+bind [ copy-mode
+bind ] paste-buffer
+
+# Copy mode bindings that work without crashing
+bind-key -T copy-mode-vi 'v' send -X begin-selection
+bind-key -T copy-mode-vi 'y' send -X copy-selection-and-cancel
+bind-key -T copy-mode-vi 'Enter' send -X copy-selection-and-cancel
+bind-key -T copy-mode-vi 'Escape' send -X cancel
+
+# Manual clipboard integration (safer alternative)
+# Use these bindings to manually copy to system clipboard:
+bind-key -T copy-mode-vi 'Y' send -X copy-pipe-and-cancel "pbcopy"
+bind-key C-y run "tmux save-buffer - | pbcopy"
+
+# Basic settings
+set -g history-limit 10000
+set -sg escape-time 50
+set -g base-index 1
+setw -g pane-base-index 1
+set -g renumber-windows on
+
+# Reload key
+bind r source-file ~/.tmux.conf \; display-message "Config reloaded!"
+
+# Pane navigation
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+
+# Pane resizing
+bind -r C-h resize-pane -L 5
+bind -r C-j resize-pane -D 5
+bind -r C-k resize-pane -U 5
+bind -r C-l resize-pane -R 5
+
+# Better splitting
+bind | split-window -h -c "#{pane_current_path}"
+bind - split-window -v -c "#{pane_current_path}"
+
+# SSH forwarding
 set -g update-environment "DISPLAY SSH_ASKPASS SSH_AGENT_PID SSH_CONNECTION WINDOWID XAUTHORITY"
 set-environment -g 'SSH_AUTH_SOCK' $HOME/.ssh/ssh_auth_sock
+
+# Mouse support with Terminal.app compatibility
+set -g mouse on
+
+# Allow mouse selection to bypass tmux and go to Terminal.app
+# Hold Option key while selecting to copy with Cmd-C in Terminal.app
+bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
+bind -n WheelDownPane select-pane -t= \; send-keys -M
+
+# Alternative: Toggle mouse mode on/off when needed
+bind m set -g mouse \; display-message "Mouse: #{?mouse,ON,OFF}"
+
+# Enable focus events so iTerm2 can properly handle notifications
+set -g focus-events on
